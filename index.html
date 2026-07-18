@@ -33,7 +33,6 @@
   }
   #app{position:fixed; inset:0; width:100%; height:100%; overflow:hidden;}
 
-  /* ---------- Landing Page ---------- */
   #landing{
     position:fixed; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -86,7 +85,6 @@
   }
   #fsNotice.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-  /* ---------- Stage (the actual test surface) ---------- */
   #stage{
     position:fixed; inset:0; width:100%; height:100%;
     background:#000;
@@ -98,7 +96,6 @@
     position:absolute; inset:0; width:100%; height:100%; display:block;
   }
 
-  /* ---------- Control Overlay (glassmorphism) ---------- */
   #controls{
     position:fixed; left:0; right:0; bottom:0;
     display:flex; flex-direction:column; align-items:center; gap:14px;
@@ -215,7 +212,6 @@
 <body>
 <div id="app">
 
-  <!-- LANDING -->
   <div id="landing">
     <div class="logo-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#0a0a0d" stroke-width="2"/><circle cx="9" cy="9" r="1.6" fill="#0a0a0d"/><circle cx="15" cy="15" r="1.6" fill="#0a0a0d"/></svg>
@@ -233,12 +229,10 @@
 
   <div id="fsNotice" class="glass" role="status" aria-live="polite"></div>
 
-  <!-- STAGE -->
   <div id="stage" role="application" aria-label="Pixel test display">
     <canvas id="stageCanvasLayer"></canvas>
   </div>
 
-  <!-- TOP BAR -->
   <div id="topBar">
     <div id="modeBadge" class="pill glass" aria-live="polite">
       <span id="modeLabel">Pure White<span class="idx" id="modeIdx">1 / 24</span></span>
@@ -253,7 +247,6 @@
     </div>
   </div>
 
-  <!-- BOTTOM CONTROLS -->
   <div id="controls">
     <div id="progressWrap"><div id="progressBar"></div></div>
 
@@ -277,7 +270,6 @@
     </div>
   </div>
 
-  <!-- HELP OVERLAY -->
   <div id="helpOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <div id="helpCard" class="glass">
       <h2 id="helpTitle">Shortcuts &amp; Gestures</h2>
@@ -304,7 +296,6 @@
 (function(){
   "use strict";
 
-  /* ================= State & Config ================= */
 
   const stage = document.getElementById('stage');
   const canvas = document.getElementById('stageCanvasLayer');
@@ -329,10 +320,7 @@
   let customColor = '#ff8800';
   let running = false;
 
-  /* ================= Test Mode Definitions ================= */
-  // type: 'solid' | 'gradient-h' | 'gradient-v' | 'checker' | 'grid' | 'pixelgrid'
-  //       | 'vlines' | 'hlines' | 'scan' | 'blink' | 'ramp' | 'rgbcycle' | 'flash' | 'custom'
-
+  
   const MODES = [
     { name:'Pure White',   type:'solid', color:'#ffffff' },
     { name:'Pure Black',   type:'solid', color:'#000000' },
@@ -362,7 +350,6 @@
 
   let currentIndex = 0;
 
-  /* ================= Canvas sizing ================= */
 
   function resizeCanvas(){
     W = window.innerWidth;
@@ -375,8 +362,6 @@
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   window.addEventListener('resize', resizeCanvas, { passive:true });
-
-  /* ================= Rendering ================= */
 
   function hexToRgb(hex){
     const v = hex.replace('#','');
@@ -558,7 +543,6 @@
     }
   }
 
-  /* ================= Mode / UI updates ================= */
 
   function updateModeUI(){
     const mode = MODES[currentIndex];
@@ -585,7 +569,6 @@
   function nextMode(){ goToMode(currentIndex+1); }
   function prevMode(){ goToMode(currentIndex-1); }
 
-  /* ================= Controls auto-hide ================= */
 
   function showControls(){
     controlsVisible = true;
@@ -609,7 +592,6 @@
     hideTimer = setTimeout(()=>{ if(helpOverlay.classList.contains('show')) return; hideControlsNow(); }, 3200);
   }
 
-  /* ================= Fullscreen ================= */
 
   function requestFS(el){
     const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
@@ -638,7 +620,6 @@
     setTimeout(()=> fsNotice.classList.remove('show'), 3200);
   }
 
-  /* ================= Start / Exit test flow ================= */
 
   function startTest(){
     if(running) return;
@@ -663,7 +644,6 @@
     clearTimeout(hideTimer);
   }
 
-  /* ================= Event wiring ================= */
 
   document.getElementById('startBtn').addEventListener('click', (e)=>{
     e.stopPropagation();
@@ -699,7 +679,6 @@
   });
   customColorInput.addEventListener('click', (e)=> e.stopPropagation());
 
-  // Stage click -> next color (but not when clicking controls / picker)
   stage.addEventListener('click', (e)=>{
     if(!controlsVisible){
       showControls();
@@ -708,7 +687,6 @@
     nextMode();
   });
 
-  // Tap to toggle controls (distinguish from swipe)
   let touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchMoved = false;
   stage.addEventListener('touchstart', (e)=>{
     if(e.touches.length !== 1) return;
@@ -740,13 +718,11 @@
     }
   }, { passive:true });
 
-  // Mouse move -> reveal controls
   stage.addEventListener('mousemove', ()=>{
     if(!controlsVisible) showControls();
     else scheduleHide();
   });
 
-  // Keyboard shortcuts
   window.addEventListener('keydown', (e)=>{
     if(helpOverlay.classList.contains('show')){
       if(e.key === 'Escape' || e.key === '?'){ e.preventDefault(); closeHelp(); }
@@ -774,7 +750,6 @@
   document.addEventListener('webkitfullscreenchange', onFsChange);
   function onFsChange(){
     if(!isFullscreen() && running){
-      // user pressed Esc / browser exited fullscreen — keep test running in normal mode
       resizeCanvas();
       render(performance.now());
     } else if(isFullscreen()){
@@ -787,11 +762,9 @@
     setTimeout(()=>{ resizeCanvas(); render(performance.now()); }, 200);
   });
 
-  // Prevent context menu / text selection interfering during tests
   stage.addEventListener('contextmenu', e=> e.preventDefault());
   document.addEventListener('selectstart', e=>{ if(running) e.preventDefault(); });
 
-  // Initial sizing
   resizeCanvas();
 
 })();
